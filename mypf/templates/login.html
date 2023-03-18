@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <h1>ログイン画面</h1>
+    <form method="POST">
+        <p>{% if error %}{{error}}{% endif %}</p>
+        
+        <label for="">ユーザー名</label><br>
+        <input type="text" name="username"><br>
+        <label for="">パスワード</label>
+        <input type="password" name="password">
+        
+        <input type="submit" value="ログイン">
+    </form>
+
+{% endblock %}

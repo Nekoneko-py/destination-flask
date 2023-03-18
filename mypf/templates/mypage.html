@@ -1,0 +1,19 @@
+{% extends "bootstrap/base.html" %}
+{% block content %}
+
+<div class="container">
+    {% for element in elements %}
+    <form action="{{ element.id }}/result/member" method="post">
+        <article>
+            <p name="origin">{{ element.origin }}</p>
+            <p name="waypoint">{{ element.waypoint }}</p>
+            <p name="destination">{{ element.destination }}</p>
+            <p name="modeSelect" value="{{ mode }}">{{ element.modeName }}</p>
+            <button onclick="location.href;'/result'" type="submit" class="btn btn-success">探索データを復元</button>
+        </article>
+    </form>
+    {% endfor %}
+    <a href="/input/members" role="button">メンバーズTOPへ戻る</a>
+</div>
+
+{% endblock %}

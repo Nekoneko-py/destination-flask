@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  
+  <a href="/signup" role="button">ユーザー新規登録</a>
+  <form action='/result' method="POST">
+        <div id="form_area">
+          <div class="form-group">
+            <input type="text" class="form-contlor" id="inputform" name="start" placeholder="始点">
+          </div>
+        </div>
+          <input type="button" value="+" onclick="addForm()"><br>
+        <div class="form-group">
+          <input type="text" class="form-contlor" id="" name="end" placeholder="終点"><br>
+        </div>
+          <label for="">移動手段</label><br>
+        <select name="modeSelect">
+          <option value="DRIVING">車</option>
+          <option value="WALKING">徒歩</option>
+          <option value="BICYCLING">自転車</option>
+          <option value="TRANSIT">交通機関</option>
+        </select><br>
+      <button type="submit" class="btn btn-success">探索開始</button>
+    </form>
+</div>
+{% endblock %}
+

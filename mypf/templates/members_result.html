@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <script type="text/javascript">
+    var start = {{ start|tojson }};
+    var end = {{ end|tojson }};
+    var destinations = {{ destinations|tojson }};
+    var mode = {{ mode|tojson }}
+  </script>
+  
+
+  
+  
+    <div id="container">
+      <div id="map"></div>
+<div class="pull-right">
+      <div id="sidebar">
+          <b>始点:</b><br>
+            <div id="start" value="{{ start }}"><i>{{ start }}</i></div><br>
+              <b>経由地:</b><br>
+                {% for destination in destinations %}
+                  <div class="waypoint" id="waypoint" value="{{ destination }}">   
+                    <i>{{ destination }}</i>
+                  </div>
+                {% endfor %}
+                <b>終点:</b><br>
+                  <div id="end" value="{{ end }}"><i>{{ end }}</i></div><br>
+                    <b>移動手段:</b><br>
+                  <div id="mode"><i>{{ modeName }}</i><br></div>
+                <small>の探索結果</small>
+                <div id="directions-panel"></div>
+        </div>  
+    </div>
+  </div>
+</div>
+  <a href="/" role="button">topへ戻る</a>
+      
+{% endblock %}

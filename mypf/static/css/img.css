@@ -1,0 +1,7 @@
+.backgroundimge{
+    background-image: url(mypf\venv\img\winding-road-1556177.jpg);
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}

@@ -1,19 +1,31 @@
-{% extends "bootstrap/base.html" %}
+{% extends "base members.html" %}
 {% block content %}
-
-<div class="container">
+<div class="container-fluid my-5 mx-5">
+    <div class="row">
     {% for element in elements %}
-    <form action="{{ element.id }}/result/member" method="post">
-        <article>
-            <p name="origin">{{ element.origin }}</p>
-            <p name="waypoint">{{ element.waypoint }}</p>
-            <p name="destination">{{ element.destination }}</p>
-            <p name="modeSelect" value="{{ mode }}">{{ element.modeName }}</p>
-            <button onclick="location.href;'/result'" type="submit" class="btn btn-success">探索データを復元</button>
-        </article>
-    </form>
+        <div class="col-sm-3 py-2">
+    <div class="card">
+        <div class="card-body">
+        <p><h5 class="card-title"><b>探索データ:</b>{{ loop.index }}</h5></p>
+        <p class="card-text text-center"><b>始点:</b>{{ element.origin }}</p>
+        <p class="card-text text-center"><b>経由地:</b>
+        {% for waypoint in element.waypoint %}
+        {{ waypoint.waypoint }},
+        {% endfor %}
+        </p>
+        <p class="card-text text-center"><b>終点</b>:{{ element.destination }}</p>
+        <p class="card-text text-center"><b>移動手段:</b>{{ element.modeName }}</p>
+        <a class="btn btn-success" href="/{{ element.id }}/result/members/date" role="button">探索データを復元</a>
+        <a class="btn btn-danger" href="/{{ element.id }}/delete" role="button">探索データを削除</a>
+        </div>
+    </div>
+        </div>
+    
     {% endfor %}
-    <a href="/input/members" role="button">メンバーズTOPへ戻る</a>
 </div>
-
+<div class="row px-5 pt-3">
+    <a class="btn btn-primary col-sm-12" href="/input/members" role="button">メンバーズTOPへ戻る</a>
+</div>
+</div>
+</div>
 {% endblock %}

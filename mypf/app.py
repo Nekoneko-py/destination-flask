@@ -1,10 +1,9 @@
 from flask import Flask
 from flask import render_template,redirect,request
-from flask_login import UserMixin,LoginManager,login_user,logout_user,login_required
+from flask_login import UserMixin,LoginManager,login_user,logout_user,login_required,current_user
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
 import os
-
 
 
 app = Flask(__name__)
@@ -29,14 +28,15 @@ class Element(db.Model):
     destination = db.Column(db.String(30),nullable=False)
     mode = db.Column(db.String)
     modeName = db.Column(db.String)
-    waypoint = db.relationship('Waypoint',backref='element')
-    user_id = db.Column(db.Integer,db.ForeignKey(User.id))
+    waypoint = db.relationship('Waypoint',backref='element',lazy='joined')
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id'))
 
 class Waypoint(db.Model):
     id = db.Column(db.Integer,primary_key=True)
-    waypoint = db.Column(db.String(30),nullable=False)
-    element_id = db.Column(db.Integer,db.ForeignKey(Element.id))
+    waypoint = db.Column(db.String(30),nullable=True)
+    element_id = db.Column(db.Integer,db.ForeignKey('element.id'))
 
+login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -50,6 +50,7 @@ def input():
 
 @app.route("/result",methods=['GET','POST'])
 def result():
+    GOOGLE_API_KEY = os.environ['google_api_key']
     if request.method == 'POST':
         start = request.form.get('start')
         destinations = request.form.getlist('destination')
@@ -64,11 +65,19 @@ def result():
         elif mode == 'TRANSIT':
             modeName = '交通機関'
         
-        return render_template('result.html',start=start,destinations=destinations,end=end,mode=mode,modeName=modeName)
+        return render_template('result.html',start=start,destinations=destinations,end=end,mode=mode,modeName=modeName,GOOGLE_API_KEY=GOOGLE_API_KEY)
 
 @app.route("/input/members",methods=['GET','POST'])
 @login_required
 def members_input():
+    username = current_user.username
+    return render_template('members_input.html',username=username)
+
+@app.route("/result/members",methods=['GET','POST'])
+@login_required
+def members_result():
+    GOOGLE_API_KEY = os.environ['google_api_key']
+    username = current_user.username
     if request.method == 'POST':
         start = request.form.get('start')
         destinations = request.form.getlist('destination')
@@ -82,31 +91,41 @@ def members_input():
             modeName = '自転車'
         elif mode == 'TRANSIT':
             modeName = '交通機関'
-
-        element = Element(start=start,end=end,mode=mode,modeName=modeName)
+        
+        user_id = current_user.id
+        
+        element = Element(origin=start,destination=end,mode=mode,modeName=modeName,user_id=user_id)
         db.session.add(element)
-        db.session.commit
+        db.session.commit()
 
-        waypoint = Waypoint(destinations=destinations)
-        db.session.add(waypoint)
-        db.session.commit
-        return redirect('/result')
-    else:
-        return render_template('members_input.html')
+        last_element = Element.query.order_by(Element.id.desc()).first()
+        element_id = last_element.id
 
-@app.route("/<int:id>/result/members",methods=['GET','POST'])
+        for destination in destinations:
+            waypt = destination
+            point = Waypoint(waypoint=waypt,element_id=element_id)
+            db.session.add(point)
+            db.session.commit()
+        
+        return render_template('members_result.html',start=start,destinations=destinations,end=end,mode=mode,modeName=modeName,username=username,GOOGLE_API_KEY=GOOGLE_API_KEY)
+
+@app.route("/<int:id>/result/members/date",methods=['GET','POST'])
 @login_required
-def members_result(id):
-    if request.method == 'POST':
-        element = Element.query.get(id)
+def members_result_date(id):
+    username = current_user.username
+    element = Element.query.get(id)
+    if request.method == 'GET':
         start = element.origin
-        destinations = element.waypoint
+        destinations = []
         end = element.destination
         mode = element.mode
         modeName = element.modeName
+        for waypoint in element.waypoint:
+            destination = waypoint.waypoint
+            destinations.append(destination)
         
-        return render_template('members_result.html',start=start,destinations=destinations,end=end,mode=mode,modeName=modeName)
-
+        return render_template('members_result_date.html',start=start,destinations=destinations,end=end,mode=mode,modeName=modeName,username=username)
+    
 #サインアップ
 @app.route('/signup',methods=['GET','POST'])
 def signup():
@@ -139,13 +158,33 @@ def login():
         
     else:
         return render_template('login.html')
+    
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/')
 
 @app.route('/mypage/members',methods=['GET','POST'])
 @login_required
 def mypage():
+    username = current_user.username
     if request.method == 'GET':
-        elements = Element.query.all()
-        return render_template('mypage.html',elements=elements)
+        elements = Element.query.filter_by(user_id=current_user.id).all()
+        
+        return render_template('mypage.html',elements=elements,username=username)
+    
+@app.route('/<int:id>/delete',methods=['GET'])
+@login_required
+def delete(id):
+    element = Element.query.get(id)
+    waypoints = Waypoint.query.filter_by(element_id=id).all()
+    for waypoint in waypoints:
+        db.session.delete(waypoint)
+    db.session.delete(element)
+    db.session.commit()
 
-    if __name__ == "__main__":
+    return redirect('/mypage/members')
+
+if __name__ == "__main__":
         app.run()

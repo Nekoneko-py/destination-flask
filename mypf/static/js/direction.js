@@ -16,6 +16,9 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
   
 
   for (let i = 0; i < destinations.length; i++) {
+    if (destinations[i].trim() === '') {
+      continue; 
+    }
     {
       waypts.push({
         location: destinations[i],
@@ -29,7 +32,6 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
       origin: start,
       destination: end,
       waypoints: waypts,
-      optimizeWaypoints: true,
       travelMode: google.maps.TravelMode[mode]})
     .then((response) => {
       directionsRenderer.setDirections(response);
@@ -69,7 +71,7 @@ function calculateAndDisplayRoute(directionsService, directionsRenderer) {
       summaryPanel.innerHTML += "<b>総移動距離:</b>" + distance_sum_kilometer.toFixed(1) + '<b>km : </b>' ;
       summaryPanel.innerHTML += "<b>総移動時間:</b>" + duration_sum_hour + '<b>時間</b>' + duration_sum_min + '<b>分</b>'; 
     })
-    .catch((e) => window.alert("次の理由により、ルート リクエストに失敗しました: " + status));
+    .catch((e) => window.alert("ルート リクエストに失敗しました"));
   }
   
 
